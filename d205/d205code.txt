@@ -1,0 +1,74 @@
+CREATE TABLE public.survey_responses
+(
+customer_id text NOT NULL,
+timely_responses integer,
+timely_fixes integer,
+timely_replacements integer,
+reliability integer,
+options integer,
+respectful_response integer,
+courteous_exchange integer,
+active_listening integer,
+CONSTRAINT survey_responses_pkey PRIMARY KEY (customer_id),
+CONSTRAINT custom_id FOREIGN KEY (customer_id)
+REFERENCES public.patient (patient_id) MATCH SIMPLE
+ON UPDATE NO ACTION
+ON DELETE NO ACTION
+NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.survey_responses
+OWNER to postgres;
+
+
+
+
+------------------------------------------------------
+
+COPY survey_responses FROM 'C:\LabFiles\Survey_Responses.csv' DELIMITER ',' CSV HEADER ;
+
+
+------------------------------------------------------
+
+SELECT pa.patient_id, pa.hignblood, su.respectful_response, su.courteous_exchange, su.active_listening
+FROM patient AS pa
+LEFT JOIN survey_responses AS su
+	on pa.patient_id = su.customer_id
+;
+
+
+
+
+----------------------------------------------------
+
+WITH hbpyes AS
+	(SELECT COUNT (pa.patient_id) AS hbpyes
+		FROM patient AS pa
+		LEFT JOIN survey_responses AS su
+			on pa.patient_id = su.customer_id 
+		WHERE pa.hignblood = 'Yes'
+		AND su.respectful_response >= 3
+		AND su.courteous_exchange >= 3
+		AND su.active_listening >= 3 )
+	,
+	
+hbpno AS
+	(SELECT COUNT (pa.patient_id) AS hbpno
+		FROM patient AS pa
+		LEFT JOIN survey_responses AS su
+			on pa.patient_id = su.customer_id 
+		WHERE pa.hignblood = 'No'
+		AND su.respectful_response >= 3
+		AND su.courteous_exchange >= 3
+		AND su.active_listening >= 3 )
+	
+
+SELECT * FROM hbpyes, hbpno
+
+
+
+
+
+
